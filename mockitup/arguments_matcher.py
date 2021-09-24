@@ -1,6 +1,5 @@
-import abc
 from collections import namedtuple
-from typing import Any, Mapping, Tuple, Union
+from typing import Any, Mapping, Tuple
 
 import hamcrest
 from hamcrest.core.matcher import Matcher

@@ -1,11 +1,7 @@
-import abc
 import unittest.mock
-from collections import namedtuple
-from typing import Any, Callable, Iterable, List, Mapping, Protocol, Tuple, TypeVar
+from typing import Any, List
 
-import hamcrest
-from hamcrest.core.matcher import Matcher
-
+from .actions import ActionRaises, ActionResultBase, ActionReturns, ActionYieldsFrom
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
 
 
@@ -70,42 +66,6 @@ class MethodProxy:
 
     def raises(self, value: Any) -> None:
         self._cb(self._mock, self._arguments, ActionRaises(value))
-
-
-class ActionResultBase(Protocol):
-
-    def provide_result(self) -> Any:
-        ...
-
-
-class ActionReturns:
-
-    def __init__(self, value: Any):
-        self.__value = value
-
-    def provide_result(self) -> Any:
-        return self.__value
-
-    def __eq__(self, o: object) -> bool:
-        return self.__value == o
-
-
-class ActionRaises:
-
-    def __init__(self, value: Any):
-        self.__value = value
-
-    def provide_result(self) -> Any:
-        raise self.__value
-
-
-class ActionYieldsFrom:
-
-    def __init__(self, value: Iterable[Any]):
-        self.__value = value
-
-    def provide_result(self) -> Any:
-        yield from self.__value
 
 
 def register_call_side_effect(mock: unittest.mock.MagicMock, arguments, action_result):
