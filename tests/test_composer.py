@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from mockitup.composer import MethodProxy, MockComposer, StrictArgs, compose, register_call_side_effect, ANY_ARG
+from mockitup.composer import MethodProxy, MockComposer, ArgumentsMatcher, compose, register_call_side_effect, ANY_ARG
 from hamcrest import equal_to, greater_than
 
 
@@ -34,7 +34,7 @@ def test_method_proxy_callback():
         cb_called = True
 
     mock = MagicMock()
-    mproxy = MethodProxy(mock, StrictArgs(tuple(), {}), cb)
+    mproxy = MethodProxy(mock, ArgumentsMatcher(tuple(), {}), cb)
     mproxy.returns(5)
 
     assert cb_called
@@ -47,7 +47,7 @@ def test_composer_calls_provide_call_spec():
         calls.append((mock, arguments, action_result))
 
     mock = MagicMock()
-    mproxy = MethodProxy(mock, StrictArgs(tuple(), {}), cb)
+    mproxy = MethodProxy(mock, ArgumentsMatcher(tuple(), {}), cb)
     mproxy.returns(5)
 
     assert len(calls) == 1
@@ -64,13 +64,13 @@ def test_super_thingy_callback_registers_calls():
 
     MethodProxy(
         mock.get_five,
-        StrictArgs(tuple(), {}),
+        ArgumentsMatcher(tuple(), {}),
         register_call_side_effect,
     ).returns(5)
 
     MethodProxy(
         mock.get_six,
-        StrictArgs(tuple(), {}),
+        ArgumentsMatcher(tuple(), {}),
         register_call_side_effect,
     ).returns(6)
 
@@ -80,8 +80,8 @@ def test_super_thingy_callback_registers_calls():
 
 def test_results_per_arguments():
     mock = MagicMock()
-    MethodProxy(mock.add_five, StrictArgs((5,), {}), register_call_side_effect).returns(10)
-    MethodProxy(mock.add_five, StrictArgs((6,), {}), register_call_side_effect).returns(11)
+    MethodProxy(mock.add_five, ArgumentsMatcher((5,), {}), register_call_side_effect).returns(10)
+    MethodProxy(mock.add_five, ArgumentsMatcher((6,), {}), register_call_side_effect).returns(11)
     assert mock.add_five(5) == 10
     assert mock.add_five(6) == 11
 
