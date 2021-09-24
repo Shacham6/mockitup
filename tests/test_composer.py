@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 from mockitup.composer import MethodProxy, MockComposer, StrictArgs, compose, register_call_side_effect, ANY_ARG
+from hamcrest import equal_to, greater_than
 
 
 def test_compose_allows_nesting():
@@ -101,3 +102,12 @@ def test_wildcards():
     mock = MagicMock()
     compose(mock).tell_me_something(ANY_ARG).returns("That's interesting")
     assert mock.tell_me_something("Hello") == "That's interesting"
+
+
+def test_hamcrest_patterns():
+    mock = MagicMock()
+    compose(mock).add_five(equal_to(5)).returns(10)
+    compose(mock).add_five(greater_than(10)).returns(-1)
+    assert mock.add_five(5) == 10
+    assert mock.add_five(11) == -1
+    assert mock.add_five(12) == -1

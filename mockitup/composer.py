@@ -1,7 +1,10 @@
-from typing import Any, Callable, Mapping, Protocol, Tuple, TypeVar
+import abc
 import unittest.mock
 from collections import namedtuple
-import abc
+from typing import Any, Callable, Mapping, Protocol, Tuple, TypeVar
+
+import hamcrest
+from hamcrest.core.matcher import Matcher
 
 
 def compose(mock: unittest.mock.MagicMock) -> "MockComposer":
@@ -50,9 +53,6 @@ class MockComposer:
         )
 
 
-_T = TypeVar("_T")
-
-
 class MethodProxy:
 
     def __init__(self, mock, arguments: "ArgsBase", cb):
@@ -89,7 +89,7 @@ class StrictArgs(ArgsBase, namedtuple("StrictArgs", ["args", "kwargs"])):
         if self.args[0] is ANY_ARGS:
             return True
 
-        args_equal = all(left == right or left is ANY_ARG for left, right in zip(self.args, args))
+        args_equal = any(self.__match_values(registered, provided) for registered, provided in zip(self.args, args))
         if not args_equal:
             return False
 
@@ -98,9 +98,19 @@ class StrictArgs(ArgsBase, namedtuple("StrictArgs", ["args", "kwargs"])):
             return False
 
         for key in self.kwargs:
-            if self.kwargs[key] != kwargs[key] and self.kwargs[key] is not ANY_ARG:
+            if not self.__match_values(self.kwargs[key], kwargs[key]):
                 return False
         return True
+
+    @staticmethod
+    def __match_values(registered_value, provided_value) -> bool:
+        if registered_value is ANY_ARG:
+            return True
+
+        if isinstance(registered_value, Matcher):
+            registered_value = hamcrest.match_equality(registered_value)
+
+        return registered_value == provided_value
 
 
 class ActionResultBase(Protocol):
