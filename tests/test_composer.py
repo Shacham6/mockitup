@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import MagicMock
 
 from mockitup.composer import MethodProxy, MockComposer, ArgumentsMatcher, compose, register_call_side_effect, ANY_ARG
@@ -111,3 +112,25 @@ def test_hamcrest_patterns():
     assert mock.add_five(5) == 10
     assert mock.add_five(11) == -1
     assert mock.add_five(12) == -1
+
+
+def test_yields():
+    mock = MagicMock()
+    compose(mock).iter_numbers().yields_from([1, 2, 3, 4, 5])
+
+    return_value = mock.iter_numbers()
+    assert not isinstance(return_value, list)
+    assert list(return_value) == [1, 2, 3, 4, 5]
+
+
+def test_raises():
+    mock = MagicMock()
+    with compose(mock.divide) as divide:
+        divide(ANY_ARG, 0).raises(ZeroDivisionError())
+        divide(4, 2).returns(2)
+
+    assert mock.divide(4, 2) == 2
+    with pytest.raises(ZeroDivisionError):
+        mock.divide(9, 0)
+    with pytest.raises(ZeroDivisionError):
+        mock.divide(8, 0)
