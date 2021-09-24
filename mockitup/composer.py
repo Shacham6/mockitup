@@ -43,7 +43,11 @@ class MockComposer:
 
     def __call__(self, *args, **kwargs) -> "MethodProxy":
         members = _composer_members(self)
-        return MethodProxy(members.mock, StrictArgs(args, kwargs), None)
+        return MethodProxy(
+            members.mock,
+            StrictArgs(args, kwargs),
+            register_call_side_effect,
+        )
 
 
 _T = TypeVar("_T")
@@ -67,10 +71,36 @@ class ArgsBase(metaclass=abc.ABCMeta):
         pass
 
 
+ANY_ARG = object()
+ANY_ARGS = object()
+
+
 class StrictArgs(ArgsBase, namedtuple("StrictArgs", ["args", "kwargs"])):
 
     def matches(self, args: Tuple[Any], kwargs: Mapping[str, Any]) -> bool:
-        return self.args == args and kwargs == kwargs
+        registered_len = len(self.args) + len(self.kwargs)
+        provided_len = len(args) + len(kwargs)
+        if registered_len == provided_len == 0:
+            return True
+
+        if registered_len != provided_len:
+            return False
+
+        if self.args[0] is ANY_ARGS:
+            return True
+
+        args_equal = all(left == right or left is ANY_ARG for left, right in zip(self.args, args))
+        if not args_equal:
+            return False
+
+        # Should have same keys
+        if set(self.kwargs) != set(kwargs):
+            return False
+
+        for key in self.kwargs:
+            if self.kwargs[key] != kwargs[key] and self.kwargs[key] is not ANY_ARG:
+                return False
+        return True
 
 
 class ActionResultBase(Protocol):
@@ -109,3 +139,8 @@ class MockItUpSideEffect:
         for registered_args, action_result in self.__registered:
             if registered_args.matches(args, kwargs):
                 return action_result.provide_result()
+        raise UnregisteredCall()
+
+
+class UnregisteredCall(Exception):
+    pass

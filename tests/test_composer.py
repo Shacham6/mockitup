@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from mockitup.composer import MethodProxy, MockComposer, StrictArgs, compose, register_call_side_effect
+from mockitup.composer import MethodProxy, MockComposer, StrictArgs, compose, register_call_side_effect, ANY_ARG
 
 
 def test_compose_allows_nesting():
@@ -75,3 +75,29 @@ def test_super_thingy_callback_registers_calls():
 
     assert mock.get_five() == 5
     assert mock.get_six() == 6
+
+
+def test_results_per_arguments():
+    mock = MagicMock()
+    MethodProxy(mock.add_five, StrictArgs((5,), {}), register_call_side_effect).returns(10)
+    MethodProxy(mock.add_five, StrictArgs((6,), {}), register_call_side_effect).returns(11)
+    assert mock.add_five(5) == 10
+    assert mock.add_five(6) == 11
+
+
+def test_compose_uses_primary_side_effect_function():
+    mock = MagicMock()
+    compose(mock).get_five().returns(5)
+    assert mock.get_five() == 5
+
+    with compose(mock.add_five) as add_five:
+        add_five(5).returns(10)
+        add_five(6).returns(11)
+    assert mock.add_five(5) == 10
+    assert mock.add_five(6) == 11
+
+
+def test_wildcards():
+    mock = MagicMock()
+    compose(mock).tell_me_something(ANY_ARG).returns("That's interesting")
+    assert mock.tell_me_something("Hello") == "That's interesting"
