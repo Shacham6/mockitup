@@ -1,11 +1,11 @@
 import abc
 import unittest.mock
 from collections import namedtuple
-from typing import Any, Callable, Mapping, Protocol, Tuple, TypeVar
+from typing import Any, Callable, List, Mapping, Protocol, Tuple, TypeVar
 
 import hamcrest
 from hamcrest.core.matcher import Matcher
-from .arguments_matcher import ArgumentsMatcher, ANY_ARG, ANY_ARGS
+from .arguments_matcher import ArgumentsMatcher, ANY_ARG, ANY_ARGS, ArgumentsMatchResult
 
 
 def compose(mock: unittest.mock.MagicMock) -> "MockComposer":
@@ -98,11 +98,20 @@ class MockItUpSideEffect:
         self.__registered.append((arguments, action_result))
 
     def __call__(self, *args, **kwargs):
+        results = []
         for registered_args, action_result in self.__registered:
-            if registered_args.matches(args, kwargs):
-                return action_result.provide_result()
-        raise UnregisteredCall()
+            match_results = registered_args.matches(args, kwargs)
+
+            if not match_results:
+                results.append(match_results)
+                continue
+
+            return action_result.provide_result()
+        raise UnregisteredCall(results)
 
 
 class UnregisteredCall(Exception):
-    pass
+
+    def __init__(self, failed_matches: List[ArgumentsMatchResult]):
+        Exception.__init__(self, "Failed all arguments matching, can't finish call")
+        self.failed_matches = failed_matches
