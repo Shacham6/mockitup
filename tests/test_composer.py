@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from mockitup.composer import MethodProxy, MockComposer, compose
+from mockitup.composer import MethodProxy, MockComposer, StrictArgs, compose, register_call_side_effect
 
 
 def test_compose_allows_nesting():
@@ -33,7 +33,7 @@ def test_method_proxy_callback():
         cb_called = True
 
     mock = MagicMock()
-    mproxy = MethodProxy(mock, tuple(), {}, cb)
+    mproxy = MethodProxy(mock, StrictArgs(tuple(), {}), cb)
     mproxy.returns(5)
 
     assert cb_called
@@ -46,7 +46,7 @@ def test_composer_calls_provide_call_spec():
         calls.append((mock, arguments, action_result))
 
     mock = MagicMock()
-    mproxy = MethodProxy(mock, tuple(), {}, cb)
+    mproxy = MethodProxy(mock, StrictArgs(tuple(), {}), cb)
     mproxy.returns(5)
 
     assert len(calls) == 1
@@ -56,3 +56,22 @@ def test_composer_calls_provide_call_spec():
     assert originated_mock is mock
     assert arguments == (tuple(), {})
     assert action_result.provide_result() == 5
+
+
+def test_super_thingy_callback_registers_calls():
+    mock = MagicMock()
+
+    MethodProxy(
+        mock.get_five,
+        StrictArgs(tuple(), {}),
+        register_call_side_effect,
+    ).returns(5)
+
+    MethodProxy(
+        mock.get_six,
+        StrictArgs(tuple(), {}),
+        register_call_side_effect,
+    ).returns(6)
+
+    assert mock.get_five() == 5
+    assert mock.get_six() == 6

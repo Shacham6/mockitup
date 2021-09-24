@@ -1,5 +1,7 @@
 from typing import Any, Callable, Mapping, Protocol, Tuple, TypeVar
 import unittest.mock
+from collections import namedtuple
+import abc
 
 
 def compose(mock: unittest.mock.MagicMock) -> "MockComposer":
@@ -41,7 +43,7 @@ class MockComposer:
 
     def __call__(self, *args, **kwargs) -> "MethodProxy":
         members = _composer_members(self)
-        return MethodProxy(members.mock, args, kwargs, None)
+        return MethodProxy(members.mock, StrictArgs(args, kwargs), None)
 
 
 _T = TypeVar("_T")
@@ -49,14 +51,26 @@ _T = TypeVar("_T")
 
 class MethodProxy:
 
-    def __init__(self, mock, args: Tuple, kwargs: Mapping, cb):
+    def __init__(self, mock, arguments: "ArgsBase", cb):
         self._mock = mock
-        self._args = args
-        self._kwargs = kwargs
+        self._arguments = arguments
         self._cb = cb
 
     def returns(self, value: Any) -> None:
-        self._cb(self._mock, (self._args, self._kwargs), ActionReturns(value))
+        self._cb(self._mock, self._arguments, ActionReturns(value))
+
+
+class ArgsBase(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def matches(self, args: Tuple[Any], kwargs: Mapping[str, Any]) -> bool:
+        pass
+
+
+class StrictArgs(ArgsBase, namedtuple("StrictArgs", ["args", "kwargs"])):
+
+    def matches(self, args: Tuple[Any], kwargs: Mapping[str, Any]) -> bool:
+        return self.args == args and kwargs == kwargs
 
 
 class ActionResultBase(Protocol):
@@ -75,3 +89,23 @@ class ActionReturns:
 
     def __eq__(self, o: object) -> bool:
         return self.__value == o
+
+
+def register_call_side_effect(mock: unittest.mock.MagicMock, arguments, action_result):
+    if not mock.side_effect:
+        mock.side_effect = MockItUpSideEffect()
+    mock.side_effect.register(arguments, action_result)
+
+
+class MockItUpSideEffect:
+
+    def __init__(self):
+        self.__registered = []
+
+    def register(self, arguments, action_result):
+        self.__registered.append((arguments, action_result))
+
+    def __call__(self, *args, **kwargs):
+        for registered_args, action_result in self.__registered:
+            if registered_args.matches(args, kwargs):
+                return action_result.provide_result()
