@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+import unittest.mock
 
 import pytest
 from hamcrest import equal_to, greater_than

@@ -5,7 +5,7 @@ from typing import Any, List, Mapping, Optional, Tuple, Type, TypeVar, cast
 from typing_extensions import Protocol
 
 from .actions import ActionRaises, ActionReturns, ActionYieldsFrom, BaseActionResult
-from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
+from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult, ArgumentsNotMatchedError
 from .proxies import MockResponseProxy, ProxyCallback
 
 _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
@@ -69,8 +69,7 @@ class ExpectationSuite:
 
     def __validate_expectations(self) -> None:
         for expectation in self.__expectations:
-            if not expectation.was_met():
-                raise ExpectationNotMet()
+            expectation.assert_met()
 
     def expect(self, mock: _MockType) -> "MockComposer":
         return MockComposer(mock, self.__register_expectation)
@@ -81,7 +80,7 @@ class ExpectationSuite:
         arguments: ArgumentsMatcher,
         action: BaseActionResult,
     ) -> None:
-        expectation = self.__Expectation()
+        expectation = self.__Expectation(mock, arguments)
         self.__register_call_side_effect(mock, arguments, action, report=expectation.report)
         self.__expectations.append(expectation)
 
@@ -112,13 +111,27 @@ class ExpectationSuite:
     class __Expectation:
         __match_results: Optional[ArgumentsMatchResult]
 
-        def __init__(self):
+        def __init__(self, mock: _MockType, args: ArgumentsMatcher) -> None:
+            self.__mock = mock
+            self.__args = args
             self.__match_results = None
 
         def was_met(self) -> bool:
             return bool(self.__match_results)
 
-        def report(self, match_results: ArgumentsMatchResult):
+        def assert_met(self) -> None:
+            if not self.__match_results:
+                mock_name = self.__mock._extract_mock_name()
+                args, kwargs = self.__args
+                message = (f"Expected mock `{mock_name}` to be called with "
+                           f"(args: '{args}', kwargs: '{kwargs}'), but wasn't")
+                raise ExpectationNotMet(
+                    message,
+                    mock=self.__mock,
+                    expected_arguments=self.__args,
+                )
+
+        def report(self, match_results: ArgumentsMatchResult) -> None:
             self.__match_results = match_results
 
 
@@ -137,7 +150,16 @@ def expectation_suite() -> ExpectationSuite:
 
 
 class ExpectationNotMet(Exception):
-    pass
+
+    def __init__(
+        self,
+        *args: object,
+        mock: _MockType,
+        expected_arguments: ArgumentsMatcher,
+    ) -> None:
+        Exception.__init__(self, *args)
+        self.mock = mock
+        self.expected_arguments = expected_arguments
 
 
 class MockItUpSideEffect:
