@@ -1,6 +1,6 @@
 import unittest.mock
 from trace import Trace
-from typing import Any, List, Mapping, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, Callable, List, Mapping, Optional, Tuple, Type, TypeVar, cast
 
 from typing_extensions import Protocol
 
@@ -55,11 +55,25 @@ class MockComposer:
         )
 
 
+class ExpectationFulfillmentCursor:
+
+    def __init__(self):
+        self.__cursor = 0
+
+    def next(self) -> int:
+        curr = self.__cursor
+        self.__cursor += 1
+        return curr
+
+
 class ExpectationSuite:
     __expectations: List["__Expectation"]
+    __ordered: bool
 
-    def __init__(self) -> None:
+    def __init__(self, ordered: bool) -> None:
         self.__expectations = []
+        self.__ordered = ordered
+        self.__expectation_fulfillment_cursor = ExpectationFulfillmentCursor()
 
     def __enter__(self) -> "ExpectationSuite":
         return self
@@ -68,8 +82,10 @@ class ExpectationSuite:
         self.__validate_expectations()
 
     def __validate_expectations(self) -> None:
-        for expectation in self.__expectations:
+        for expectation_index, expectation in enumerate(self.__expectations):
             expectation.assert_met()
+            if self.__ordered and expectation_index != expectation.fulfillment_step:
+                raise ExpectationNotMet("Expectations were fulfilled out of order")
 
     def expect(self, mock: _MockType) -> "MockComposer":
         return MockComposer(mock, self.__register_expectation)
@@ -80,8 +96,8 @@ class ExpectationSuite:
         arguments: ArgumentsMatcher,
         action: BaseActionResult,
     ) -> None:
-        expectation = self.__Expectation(mock, arguments)
-        self.__register_call_side_effect(mock, arguments, action, report=expectation.report)
+        expectation = self.__Expectation(mock, arguments, self.__expectation_fulfillment_cursor)
+        self.__register_call_side_effect(mock, arguments, action, report=expectation.finish)
         self.__expectations.append(expectation)
 
     def allow(self, mock: _MockType) -> "MockComposer":
@@ -110,11 +126,15 @@ class ExpectationSuite:
 
     class __Expectation:
         __match_results: Optional[ArgumentsMatchResult]
+        __fulfilled_at_step: Optional[int]
 
-        def __init__(self, mock: _MockType, args: ArgumentsMatcher) -> None:
+        def __init__(self, mock: _MockType, args: ArgumentsMatcher,
+                     fulfillment_cursor: ExpectationFulfillmentCursor) -> None:
             self.__mock = mock
             self.__args = args
             self.__match_results = None
+            self.__fulfillment_cursor = fulfillment_cursor
+            self.__fulfilled_at_step = None
 
         def was_met(self) -> bool:
             return bool(self.__match_results)
@@ -125,14 +145,19 @@ class ExpectationSuite:
                 args, kwargs = self.__args
                 message = (f"Expected mock `{mock_name}` to be called with "
                            f"(args: '{args}', kwargs: '{kwargs}'), but wasn't")
-                raise ExpectationNotMet(
+                raise ExpectationNotFulfilled(
                     message,
                     mock=self.__mock,
                     expected_arguments=self.__args,
                 )
 
-        def report(self, match_results: ArgumentsMatchResult) -> None:
+        def finish(self, match_results: ArgumentsMatchResult) -> None:
             self.__match_results = match_results
+            self.__fulfilled_at_step = self.__fulfillment_cursor.next()
+
+        @property
+        def fulfillment_step(self) -> Optional[int]:
+            return self.__fulfilled_at_step
 
 
 class _ReportMatchResults(Protocol):
@@ -145,11 +170,15 @@ class _ExpectationResult:
     pass
 
 
-def expectation_suite() -> ExpectationSuite:
-    return ExpectationSuite()
+def expectation_suite(ordered: bool = False) -> ExpectationSuite:
+    return ExpectationSuite(ordered=ordered)
 
 
 class ExpectationNotMet(Exception):
+    pass
+
+
+class ExpectationNotFulfilled(ExpectationNotMet):
 
     def __init__(
         self,
@@ -160,6 +189,10 @@ class ExpectationNotMet(Exception):
         Exception.__init__(self, *args)
         self.mock = mock
         self.expected_arguments = expected_arguments
+
+
+class ExpectationOutOfOrder(ExpectationNotMet):
+    pass
 
 
 class MockItUpSideEffect:

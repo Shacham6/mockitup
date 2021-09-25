@@ -1,5 +1,5 @@
-from unittest.mock import MagicMock, Mock
 import unittest.mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from hamcrest import equal_to, greater_than
@@ -108,3 +108,30 @@ def test_expect_all_calls_for_same_mock():
         es.expect(mock).__call__("two").returns(2)
 
         assert mock("one") + mock("two") == 3
+
+
+def test_expect_ensures_order():
+    with expectation_suite(ordered=True) as es:
+        mock = Mock()
+        es.expect(mock).__call__("zero").returns()
+        es.expect(mock).get("one").returns()
+        es.expect(mock).get("two").returns()
+        es.expect(mock).get_three().returns()
+
+        mock("zero")
+        mock.get("one")
+        mock.get("two")
+        mock.get_three()
+
+    with pytest.raises(ExpectationNotMet):
+        with expectation_suite(ordered=True) as es:
+            mock = Mock()
+            es.expect(mock).__call__("zero").returns()
+            es.expect(mock).get("one").returns()
+            es.expect(mock).get("two").returns()
+            es.expect(mock).get_three().returns()
+
+            mock("zero")
+            mock.get("one")
+            mock.get_three()
+            mock.get("two")
