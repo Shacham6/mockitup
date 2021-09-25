@@ -1,11 +1,11 @@
 import unittest.mock
 from trace import Trace
-from typing import Any, Callable, List, Mapping, Optional, Tuple, Type, TypeVar, cast
+from typing import Any, List, Optional, Tuple, Type, TypeVar, cast
 
 from typing_extensions import Protocol
 
-from .actions import ActionRaises, ActionReturnsMultipleValues, ActionYieldsFrom, BaseActionResult
-from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult, ArgumentsNotMatchedError
+from .actions import BaseActionResult
+from .arguments_matcher import ArgumentsMatcher, ArgumentsMatchResult
 from .proxies import MockResponseProxy, ProxyCallback
 
 _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)

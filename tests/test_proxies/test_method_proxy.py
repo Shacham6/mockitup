@@ -1,8 +1,6 @@
 from unittest.mock import MagicMock
 
-import pytest
-from hamcrest import equal_to, greater_than
-from mockitup.composer import ANY_ARG, ArgumentsMatcher, MockResponseProxy, MockComposer, expectation_suite
+from mockitup.composer import ArgumentsMatcher, MockResponseProxy
 
 
 def test_method_proxy_callback():

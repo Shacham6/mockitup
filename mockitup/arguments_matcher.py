@@ -1,7 +1,6 @@
 from collections import namedtuple
 from typing import Any, Mapping, Tuple
 
-import hamcrest
 from hamcrest import match_equality
 from hamcrest.core.matcher import Matcher
 

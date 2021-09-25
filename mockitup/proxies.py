@@ -1,9 +1,7 @@
-import abc
-from functools import partial
-from typing import Any, Callable, Generic, Mapping, MutableMapping, Optional, Type, TypeVar
+from typing import Any, Callable, Optional, Type, TypeVar, Union
 from unittest.mock import Mock
 
-from typing_extensions import Concatenate, ParamSpec, Protocol
+from typing_extensions import Protocol
 
 from .actions import ActionRaises, ActionReturnsMultipleValues, ActionReturnsSingleValue, ActionYieldsFrom, \
     BaseActionResult
@@ -45,6 +43,9 @@ class _ValueProvidingDescriptor:
         return __tmp
 
 
+ActionReturns = Union[ActionReturnsMultipleValues, ActionReturnsSingleValue]
+
+
 class MockResponseProxy:
 
     def __init__(self, mock: _MockType, arguments: "ArgumentsMatcher", cb: ProxyCallback):
@@ -53,6 +54,7 @@ class MockResponseProxy:
         self._cb = cb
 
     def returns(self, *values: Any) -> None:
+        action: ActionReturns
         if len(values) > 2:
             action = ActionReturnsMultipleValues(*values)
         else:
