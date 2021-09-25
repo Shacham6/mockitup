@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "mockitup"
+version = "0.0.1"
+description = "A `unittest.mock` wrapper for easier mocking"
+authors = ["Shacham Ginat <shacham6@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+PyHamcrest = "^2.0.2"
+
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.910"
+flake8 = "^3.9.2"
+isort = "^5.9.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
