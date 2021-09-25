@@ -1,7 +1,9 @@
 import unittest.mock
-from typing import Any, Iterable, List, Protocol
+from typing import Any, Iterable, List, Protocol, TypeVar
 
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
+
+_MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
 class ActionResultBase(Protocol):
@@ -19,7 +21,7 @@ class ActionReturns:
         return self.__value
 
     def __eq__(self, o: object) -> bool:
-        return self.__value == o
+        return bool(self.__value == o)
 
 
 class ActionRaises:

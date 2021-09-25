@@ -3,6 +3,7 @@ from typing import Any, Mapping, Tuple
 
 import hamcrest
 from hamcrest.core.matcher import Matcher
+from hamcrest import match_equality
 
 ANY_ARG = object()
 ANY_ARGS = object()
@@ -45,14 +46,14 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
         return True, "Arguments matched"
 
     @staticmethod
-    def __match_values(registered_value, provided_value) -> bool:
+    def __match_values(registered_value: Any, provided_value: Any) -> bool:
         if registered_value is ANY_ARG:
             return True
 
         if isinstance(registered_value, Matcher):
-            registered_value = hamcrest.match_equality(registered_value)
+            registered_value = match_equality(registered_value)
 
-        return registered_value == provided_value
+        return bool(registered_value == provided_value)
 
 
 class ArgumentsMatchResult:

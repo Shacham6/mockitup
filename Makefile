@@ -2,6 +2,6 @@ clean:
 	rm -rf **/__pycache__ **/.pytest_cache/
 
 typecheck:
-	mypy -p mockitup.composer --strict
+	mypy -p mockitup --strict
 typecheck-report:
-	mypy -p mockitup.composer --strict --html-report mypy_report
+	mypy -p mockitup --strict --html-report mypy_report

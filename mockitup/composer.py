@@ -1,27 +1,33 @@
 import unittest.mock
-from typing import Any, List
+from trace import Trace
+from typing import Any, List, Mapping, Tuple, Type, TypeVar, cast
+
+from typing_extensions import Protocol
 
 from .actions import ActionRaises, ActionResultBase, ActionReturns, ActionYieldsFrom
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
+from .proxies import MethodProxy
+
+_MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
-def compose(mock: unittest.mock.MagicMock) -> "MockComposer":
+def compose(mock: _MockType) -> "MockComposer":
     return MockComposer(mock)
 
 
 class _MockComposerMembers:
 
-    def __init__(self, mock):
+    def __init__(self, mock: _MockType) -> None:
         self.mock = mock
 
 
-def _composer_members(composer) -> _MockComposerMembers:
-    return object.__getattribute__(composer, "_members")
+def _composer_members(composer: "MockComposer") -> _MockComposerMembers:
+    return cast(_MockComposerMembers, object.__getattribute__(composer, "_members"))
 
 
 class MockComposer:
 
-    def __init__(self, mock: unittest.mock.MagicMock):
+    def __init__(self, mock: _MockType):
         super().__setattr__("_members", _MockComposerMembers(mock))
 
     def __getattr__(self, name: str) -> "MockComposer":
@@ -29,7 +35,7 @@ class MockComposer:
         result = getattr(mock, name)
         return MockComposer(result)
 
-    def __setattr__(self, name: str, value: Any):
+    def __setattr__(self, name: str, value: Any) -> None:
         members = _composer_members(self)
         return members.mock.__setattr__(name, value)
 
@@ -39,10 +45,10 @@ class MockComposer:
         """
         return self
 
-    def __exit__(self, exception_type, exception_value, traceback):
+    def __exit__(self, exception_type: Type[BaseException], exception_value: BaseException, traceback: Trace) -> None:
         pass
 
-    def __call__(self, *args, **kwargs) -> "MethodProxy":
+    def __call__(self, *args: Any, **kwargs: Any) -> MethodProxy:
         members = _composer_members(self)
         return MethodProxy(
             members.mock,
@@ -51,41 +57,25 @@ class MockComposer:
         )
 
 
-class MethodProxy:
-
-    def __init__(self, mock, arguments: "ArgumentsMatcher", cb):
-        self._mock = mock
-        self._arguments = arguments
-        self._cb = cb
-
-    def returns(self, value: Any) -> None:
-        self._cb(self._mock, self._arguments, ActionReturns(value))
-
-    def yields_from(self, value: Any) -> None:
-        self._cb(self._mock, self._arguments, ActionYieldsFrom(value))
-
-    def raises(self, value: Any) -> None:
-        self._cb(self._mock, self._arguments, ActionRaises(value))
-
-
-def register_call_side_effect(mock: unittest.mock.MagicMock, arguments, action_result):
+def register_call_side_effect(mock: _MockType, arguments: ArgumentsMatcher, action: ActionResultBase) -> None:
     if not mock.side_effect:
         mock.side_effect = MockItUpSideEffect()
-    mock.side_effect.register(arguments, action_result)
+    mock.side_effect.register(arguments, action)
 
 
 class MockItUpSideEffect:
+    __registered: List[Tuple[ArgumentsMatcher, ActionResultBase]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__registered = []
 
-    def register(self, arguments, action_result):
+    def register(self, arguments: ArgumentsMatcher, action_result: ActionResultBase) -> None:
         self.__registered.append((arguments, action_result))
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         results = []
         for registered_args, action_result in self.__registered:
-            match_results = registered_args.matches(args, kwargs)
+            match_results = registered_args.matches(cast(Tuple[Any], args), kwargs)
 
             if not match_results:
                 results.append(match_results)
