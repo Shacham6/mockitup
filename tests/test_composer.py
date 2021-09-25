@@ -2,13 +2,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from hamcrest import equal_to, greater_than
-from mockitup.composer import ANY_ARG, ArgumentsMatcher, MethodProxy, MockComposer, compose, register_call_side_effect
+from mockitup.composer import ANY_ARG, ArgumentsMatcher, MockResponseProxy, MockComposer, compose, register_call_side_effect
 
 
 def test_compose_allows_nesting():
     mock = MagicMock()
     assert isinstance(compose(mock).a.b.c, MockComposer)
-    assert isinstance(compose(mock).a.b.c(), MethodProxy)
+    assert isinstance(compose(mock).a.b.c(), MockResponseProxy)
 
 
 def test_compose_calls_program_results_for_arguments():

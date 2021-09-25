@@ -6,7 +6,7 @@ from typing_extensions import Protocol
 
 from .actions import ActionRaises, ActionResultBase, ActionReturns, ActionYieldsFrom
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
-from .proxies import MethodProxy
+from .proxies import MockResponseProxy
 
 _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
@@ -48,9 +48,9 @@ class MockComposer:
     def __exit__(self, exception_type: Type[BaseException], exception_value: BaseException, traceback: Trace) -> None:
         pass
 
-    def __call__(self, *args: Any, **kwargs: Any) -> MethodProxy:
+    def __call__(self, *args: Any, **kwargs: Any) -> MockResponseProxy:
         members = _composer_members(self)
-        return MethodProxy(
+        return MockResponseProxy(
             members.mock,
             ArgumentsMatcher(args, kwargs),
             register_call_side_effect,
