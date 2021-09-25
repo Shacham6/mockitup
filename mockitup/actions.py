@@ -6,7 +6,7 @@ from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMat
 _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
-class ActionResultBase(Protocol):
+class BaseActionResult(Protocol):
 
     def provide_result(self) -> Any:
         ...

@@ -1,24 +1,21 @@
 import unittest.mock
 from trace import Trace
-from typing import Any, List, Mapping, Tuple, Type, TypeVar, cast
+from typing import Any, List, Mapping, Optional, Tuple, Type, TypeVar, cast
 
 from typing_extensions import Protocol
 
-from .actions import ActionRaises, ActionResultBase, ActionReturns, ActionYieldsFrom
+from .actions import ActionRaises, ActionReturns, ActionYieldsFrom, BaseActionResult
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
-from .proxies import MockResponseProxy
+from .proxies import MockResponseProxy, ProxyCallback
 
 _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
-def compose(mock: _MockType) -> "MockComposer":
-    return MockComposer(mock)
-
-
 class _MockComposerMembers:
 
-    def __init__(self, mock: _MockType) -> None:
+    def __init__(self, mock: _MockType, proxy_cb: ProxyCallback) -> None:
         self.mock = mock
+        self.proxy_cb: ProxyCallback = proxy_cb
 
 
 def _composer_members(composer: "MockComposer") -> _MockComposerMembers:
@@ -27,13 +24,14 @@ def _composer_members(composer: "MockComposer") -> _MockComposerMembers:
 
 class MockComposer:
 
-    def __init__(self, mock: _MockType):
-        super().__setattr__("_members", _MockComposerMembers(mock))
+    def __init__(self, mock: _MockType, proxy_cb: ProxyCallback):
+        super().__setattr__("_members", _MockComposerMembers(mock, proxy_cb))
 
     def __getattr__(self, name: str) -> "MockComposer":
-        mock = _composer_members(self).mock
+        members = _composer_members(self)
+        mock = members.mock
         result = getattr(mock, name)
-        return MockComposer(result)
+        return MockComposer(result, members.proxy_cb)
 
     def __setattr__(self, name: str, value: Any) -> None:
         members = _composer_members(self)
@@ -53,29 +51,110 @@ class MockComposer:
         return MockResponseProxy(
             members.mock,
             ArgumentsMatcher(args, kwargs),
-            register_call_side_effect,
+            members.proxy_cb,
         )
 
 
-def register_call_side_effect(mock: _MockType, arguments: ArgumentsMatcher, action: ActionResultBase) -> None:
-    if not mock.side_effect:
-        mock.side_effect = MockItUpSideEffect()
-    mock.side_effect.register(arguments, action)
+class ExpectationSuite:
+    __expectations: List["__Expectation"]
+
+    def __init__(self) -> None:
+        self.__expectations = []
+
+    def __enter__(self) -> "ExpectationSuite":
+        return self
+
+    def __exit__(self, *args: Any, **kwargs: Any) -> None:
+        self.__validate_expectations()
+
+    def __validate_expectations(self) -> None:
+        for expectation in self.__expectations:
+            if not expectation.was_met():
+                raise ExpectationNotMet()
+
+    def expect(self, mock: _MockType) -> "MockComposer":
+        return MockComposer(mock, self.__register_expectation)
+
+    def __register_expectation(
+        self,
+        mock: _MockType,
+        arguments: ArgumentsMatcher,
+        action: BaseActionResult,
+    ) -> None:
+        expectation = self.__Expectation()
+        self.__register_call_side_effect(mock, arguments, action, report=expectation.report)
+        self.__expectations.append(expectation)
+
+    def allow(self, mock: _MockType) -> "MockComposer":
+        return MockComposer(mock, self.__register_allowance)
+
+    def __register_allowance(
+        self,
+        mock: _MockType,
+        arguments: ArgumentsMatcher,
+        action: BaseActionResult,
+    ) -> None:
+        self.__register_call_side_effect(mock, arguments, action, report=lambda *args: None)
+
+    def __register_call_side_effect(
+        self,
+        mock: _MockType,
+        arguments: ArgumentsMatcher,
+        action: BaseActionResult,
+        *,
+        report: "_ReportMatchResults",
+    ) -> None:
+        if not mock.side_effect:
+            mock.side_effect = MockItUpSideEffect()
+
+        mock.side_effect.register(arguments, action, report=report)
+
+    class __Expectation:
+        __match_results: Optional[ArgumentsMatchResult]
+
+        def __init__(self):
+            self.__match_results = None
+
+        def was_met(self) -> bool:
+            return bool(self.__match_results)
+
+        def report(self, match_results: ArgumentsMatchResult):
+            self.__match_results = match_results
+
+
+class _ReportMatchResults(Protocol):
+
+    def __call__(self, match_results: ArgumentsMatchResult) -> None:
+        ...
+
+
+class _ExpectationResult:
+    pass
+
+
+def expectation_suite() -> ExpectationSuite:
+    return ExpectationSuite()
+
+
+class ExpectationNotMet(Exception):
+    pass
 
 
 class MockItUpSideEffect:
-    __registered: List[Tuple[ArgumentsMatcher, ActionResultBase]]
+    __registered: List[Tuple[ArgumentsMatcher, BaseActionResult, _ReportMatchResults]]
 
     def __init__(self) -> None:
         self.__registered = []
 
-    def register(self, arguments: ArgumentsMatcher, action_result: ActionResultBase) -> None:
-        self.__registered.append((arguments, action_result))
+    def register(self, arguments: ArgumentsMatcher, action_result: BaseActionResult,
+                 report: _ReportMatchResults) -> None:
+        self.__registered.append((arguments, action_result, report))
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
         results = []
-        for registered_args, action_result in self.__registered:
+        for registered_args, action_result, report in self.__registered:
             match_results = registered_args.matches(cast(Tuple[Any], args), kwargs)
+            report(match_results)
 
             if not match_results:
                 results.append(match_results)

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from hamcrest import equal_to, greater_than
-from mockitup.composer import ANY_ARG, ArgumentsMatcher, MockResponseProxy, MockComposer, compose, register_call_side_effect
+from mockitup.composer import ANY_ARG, ArgumentsMatcher, MockResponseProxy, MockComposer, expectation_suite
 
 
 def test_method_proxy_callback():
@@ -36,30 +36,3 @@ def test_composer_calls_provide_call_spec():
     assert originated_mock is mock
     assert arguments == (tuple(), {})
     assert action_result.provide_result() == 5
-
-
-def test_super_thingy_callback_registers_calls():
-    mock = MagicMock()
-
-    MockResponseProxy(
-        mock.get_five,
-        ArgumentsMatcher(tuple(), {}),
-        register_call_side_effect,
-    ).returns(5)
-
-    MockResponseProxy(
-        mock.get_six,
-        ArgumentsMatcher(tuple(), {}),
-        register_call_side_effect,
-    ).returns(6)
-
-    assert mock.get_five() == 5
-    assert mock.get_six() == 6
-
-
-def test_results_per_arguments():
-    mock = MagicMock()
-    MockResponseProxy(mock.add_five, ArgumentsMatcher((5,), {}), register_call_side_effect).returns(10)
-    MockResponseProxy(mock.add_five, ArgumentsMatcher((6,), {}), register_call_side_effect).returns(11)
-    assert mock.add_five(5) == 10
-    assert mock.add_five(6) == 11

@@ -3,21 +3,21 @@ from unittest.mock import Mock
 
 from typing_extensions import Protocol
 
-from .actions import ActionRaises, ActionResultBase, ActionReturns, ActionYieldsFrom
+from .actions import ActionRaises, BaseActionResult, ActionReturns, ActionYieldsFrom
 from .arguments_matcher import ArgumentsMatcher
 
 _MockType = TypeVar("_MockType", bound=Mock)
 
 
-class _ProxyCallback(Protocol):
+class ProxyCallback(Protocol):
 
-    def __call__(self, mock: _MockType, arguments: ArgumentsMatcher, action: ActionResultBase) -> None:
+    def __call__(self, mock: _MockType, arguments: ArgumentsMatcher, action: BaseActionResult) -> None:
         ...
 
 
 class _ActionResultBaseFactory(Protocol):
 
-    def __call__(self, value: Any) -> ActionResultBase:
+    def __call__(self, value: Any) -> BaseActionResult:
         ...
 
 
@@ -44,7 +44,7 @@ class _ValueProvidingDescriptor:
 
 class MockResponseProxy:
 
-    def __init__(self, mock: _MockType, arguments: "ArgumentsMatcher", cb: _ProxyCallback):
+    def __init__(self, mock: _MockType, arguments: "ArgumentsMatcher", cb: ProxyCallback):
         self._mock = mock
         self._arguments = arguments
         self._cb = cb
