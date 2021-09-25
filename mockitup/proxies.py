@@ -74,7 +74,7 @@ class MockResponseProxy:
         self._arguments = arguments
         self._cb = cb
 
-    def returns(self, value: Any = None):
+    def returns(self, value: Any = None) -> None:
         return self._cb(self._mock, self._arguments, ActionReturns(value))
 
     raises = _ValueProvidingDescriptor(ActionRaises)

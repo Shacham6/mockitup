@@ -57,7 +57,7 @@ class MockComposer:
 
 class ExpectationFulfillmentCursor:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__cursor = 0
 
     def next(self) -> int:
