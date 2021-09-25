@@ -4,7 +4,7 @@ from typing import Any, Callable, List, Mapping, Optional, Tuple, Type, TypeVar,
 
 from typing_extensions import Protocol
 
-from .actions import ActionRaises, ActionReturns, ActionYieldsFrom, BaseActionResult
+from .actions import ActionRaises, ActionReturnsMultipleValues, ActionYieldsFrom, BaseActionResult
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult, ArgumentsNotMatchedError
 from .proxies import MockResponseProxy, ProxyCallback
 

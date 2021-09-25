@@ -14,7 +14,24 @@ class BaseActionResult(Protocol):
         ...
 
 
-class ActionReturns:
+class ActionReturnsMultipleValues:
+
+    def __init__(self, *values: Any):
+        self.__return_none = len(values) == 0
+        self.__values = iter(values)
+        self.__last_value = None
+
+    def provide_result(self) -> Any:
+        if self.__return_none:
+            return None
+        try:
+            self.__last_value = next(self.__values)
+        except StopIteration:
+            pass
+        return self.__last_value
+
+
+class ActionReturnsSingleValue:
 
     def __init__(self, value: Any):
         self.__value = value
