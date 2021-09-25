@@ -7,6 +7,7 @@ authors = ["Shacham Ginat <shacham6@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.6.1"
 PyHamcrest = "^2.0.2"
+typing-extensions = "^3.10.0"
 
 
 [tool.poetry.dev-dependencies]

@@ -1,5 +1,7 @@
 import unittest.mock
-from typing import Any, Iterable, List, Protocol, TypeVar
+from typing import Any, Iterable, List, TypeVar
+
+from typing_extensions import Protocol
 
 from .arguments_matcher import ANY_ARG, ANY_ARGS, ArgumentsMatcher, ArgumentsMatchResult
 
