@@ -176,12 +176,12 @@ class MockItUpSideEffect:
         results = []
         for registered_args, action_result, report in self.__registered:
             match_results = registered_args.matches(cast(Tuple[Any], args), kwargs)
-            report(match_results)
 
             if not match_results:
                 results.append(match_results)
                 continue
 
+            report(match_results)
             return action_result.provide_result()
         raise UnregisteredCall(results)
 

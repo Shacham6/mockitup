@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 import unittest.mock
 
 import pytest
@@ -99,3 +99,12 @@ def test_expect_raises_when_mock_spec_not_called():
         with expectation_suite() as es:
             mock = MagicMock()
             es.expect(mock).get_five().returns(5)
+
+
+def test_expect_all_calls_for_same_mock():
+    with expectation_suite() as es:
+        mock = Mock()
+        es.expect(mock).__call__("one").returns(1)
+        es.expect(mock).__call__("two").returns(2)
+
+        assert mock("one") + mock("two") == 3
