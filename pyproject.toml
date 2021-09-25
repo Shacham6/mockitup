@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mockitup"
-version = "0.0.2"
+version = "0.0.3"
 description = "A `unittest.mock` wrapper for easier mocking"
 authors = ["Shacham Ginat <shacham6@gmail.com>"]
 
