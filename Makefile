@@ -4,10 +4,16 @@ clean:
 
 # Type checking using mypy
 typecheck:
-	mypy -p mockitup --strict
+	poetry run mypy -p mockitup --strict
+
 typecheck-report:
-	mypy -p mockitup --strict --html-report mypy_report
+	poetry run mypy -p mockitup --strict --html-report mypy_report
 
 # Ensuring examples validity
-make run-examples:
-	pytest examples/ -c examples/pytest.ini
+run-examples:
+	poetry run pytest examples/ -c examples/pytest.ini
+
+tests:
+	poetry run pytest tests/
+
+check: | typecheck tests run-examples
