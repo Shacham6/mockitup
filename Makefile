@@ -3,10 +3,10 @@ clean:
 	rm -rf **/__pycache__ **/.pytest_cache/
 
 fix-format:
-	poetry run yapf --recursive --in-place --parallel mockitup/ tests/
+	poetry run yapf --recursive --in-place --parallel mockitup/ tests/ examples/
 
 check-format:
-	poetry run flake8 mockitup/ tests/
+	poetry run flake8 mockitup/ tests/ examples/
 
 # Type checking using mypy
 typecheck:

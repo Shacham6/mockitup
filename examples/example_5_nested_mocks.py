@@ -1,5 +1,6 @@
 from unittest.mock import Mock
-from mockitup import expectation_suite, allow
+
+from mockitup import expectation_suite
 from typing_extensions import Protocol
 
 

@@ -1,7 +1,8 @@
-from mockitup.composer import ExpectationNotMet
-import pytest
 from unittest.mock import Mock, call
-from mockitup import expectation_suite
+
+import pytest
+from mockitup import allow, expectation_suite
+from mockitup.composer import ExpectationNotMet
 
 
 def vanilla_mock_orderered_calls_example():
@@ -26,7 +27,7 @@ def vanilla_mock_orderered_calls_example():
     ]
 
 
-def mockitup_ordered_calls_example():
+def mockitup_ordered_calls_using_expectations_example():
     with expectation_suite(ordered=True) as es:
         mock = Mock()
         es.expect(mock).__call__("zero").returns()
@@ -49,5 +50,23 @@ def mockitup_ordered_calls_example():
 
             mock("zero")
             mock.get("one")
+            # Here I omitted the call `mock.get("two")`
             mock.get_three()
             mock.get("two")
+
+
+def mockitup_mixed_with_unittest_mock_example():
+    mock = Mock()
+    allow(mock).__call__("zero").returns()
+    allow(mock).get("one").returns()
+    allow(mock).get_two().returns()
+
+    mock("zero")
+    mock.get("one")
+    mock.get_two()
+
+    assert mock.mock_calls == [
+        call("zero"),
+        call.get("one"),
+        call.get_two(),
+    ]
