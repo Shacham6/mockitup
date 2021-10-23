@@ -20,13 +20,3 @@ async def works_with_expectations_as_well_example():
         es.expect(amock).do_thing().returns("very fun")
 
         assert await amock.do_thing()
-
-
-@pytest.mark.anyio
-async def async_generators_example():
-    amock = AsyncMock()
-
-    allow(amock).aiter().yields_from([1, 2, 3, 4])
-
-    result = [x async for x in amock.aiter()]
-    assert result == [1, 2, 3, 4, 5]
