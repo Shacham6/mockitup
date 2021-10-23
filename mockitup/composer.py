@@ -97,32 +97,8 @@ class ExpectationSuite:
         action: BaseActionResult,
     ) -> None:
         expectation = self.__Expectation(mock, arguments, self.__expectation_fulfillment_cursor)
-        self.__register_call_side_effect(mock, arguments, action, report=expectation.finish)
+        register_call_side_effect(mock, arguments, action, report=expectation.finish)
         self.__expectations.append(expectation)
-
-    def allow(self, mock: _MockType) -> "MockComposer":
-        return MockComposer(mock, self.__register_allowance)
-
-    def __register_allowance(
-        self,
-        mock: _MockType,
-        arguments: ArgumentsMatcher,
-        action: BaseActionResult,
-    ) -> None:
-        self.__register_call_side_effect(mock, arguments, action, report=lambda *args: None)
-
-    def __register_call_side_effect(
-        self,
-        mock: _MockType,
-        arguments: ArgumentsMatcher,
-        action: BaseActionResult,
-        *,
-        report: "_ReportMatchResults",
-    ) -> None:
-        if not mock.side_effect:
-            mock.side_effect = MockItUpSideEffect()
-
-        mock.side_effect.register(arguments, action, report=report)
 
     class __Expectation:
         __match_results: Optional[ArgumentsMatchResult]
@@ -158,6 +134,31 @@ class ExpectationSuite:
         @property
         def fulfillment_step(self) -> Optional[int]:
             return self.__fulfilled_at_step
+
+
+def allow(mock: _MockType) -> "MockComposer":
+    return MockComposer(mock, _register_allowance)
+
+
+def _register_allowance(
+    mock: _MockType,
+    arguments: ArgumentsMatcher,
+    action: BaseActionResult,
+) -> None:
+    register_call_side_effect(mock, arguments, action, report=lambda *args: None)
+
+
+def register_call_side_effect(
+    mock: _MockType,
+    arguments: ArgumentsMatcher,
+    action: BaseActionResult,
+    *,
+    report: "_ReportMatchResults",
+) -> None:
+    if not mock.side_effect:
+        mock.side_effect = MockItUpSideEffect()
+
+    mock.side_effect.register(arguments, action, report=report)
 
 
 class _ReportMatchResults(Protocol):
