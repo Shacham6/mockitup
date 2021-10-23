@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock
+from asyncmock import AsyncMock
 
 import pytest
 from mockitup import allow, expectation_suite
