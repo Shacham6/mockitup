@@ -16,11 +16,6 @@ Simple run the commands:
 Adding the `--upgrade` flag will result in an upgrade of the package,
 if an older version of `mockitup` is already installed in your environment.
 
-## Differences between `mockitup` and vanilla `unittest.mock`
-
-This point can't be stressed enough - `mockitup` **is not an independent mocking library**, but
-rather a simple wrapper which provides an easier-to-use API for configuring `unittest.mock` mocks.
-
 ## The `mockitup` library
 
 Using `mockitup` is simple. It offers a small DSL to configure `unittest.mock` objects, which is easy to learn.
