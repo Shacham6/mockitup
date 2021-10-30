@@ -151,3 +151,117 @@ with expectation_suite(ordered=True) as es:
     assert mock.add_five(2) == 7
 
 ```
+
+## Extra features
+
+`mockitup` contains more features that allow you to test your code more
+efficiently.
+
+Click the following heading for details.
+
+<details>
+<summary>Call raises an exception</summary>
+To make a method call raise an exception, simply use the `.raises` directive:
+
+``` python
+from unittest.mock import Mock
+
+from mockitup import allow
+
+mock = Mock()
+
+allow(mock).divide(0).raises(ZeroDivisionError("You done goofed"))
+
+mock.divide(0)  # ZeroDivisionError: You done goofed
+```
+</details>
+
+<details>
+<summary>Call yields from iterable</summary>
+While most of the time you'll return concrete values, sometimes you'll want to make a
+call yield from something.
+For that, you can use the `yields_from` directive:
+
+``` python
+from typing import Iterator
+from unittest.mock import Mock
+
+from mockitup import allow
+
+mock = Mock()
+
+allow(mock).iter_numbers().yields_from([1, 2, 3, 4])
+
+result = mock.iter_numbers()
+
+assert isinstance(result, Iterator)
+assert not isinstance(result, list)
+
+for actual, expected in zip(result, [1, 2, 3, 4]):
+    assert actual == expected
+```
+
+</details>
+
+<details>
+<summary>Multiple return values</summary>
+When testing an impure function or method, sometimes it'll be tough to test using regular
+`unittest.mock` objects.
+
+Here's a function we want to test, for example:
+
+``` python
+def count_comments_in_line_reader(line_reader):
+    commented_out_lines = 0
+    while (line := line_reader.read_line()):
+        if line.startswith("#"):
+            commented_out_lines += 1
+    return commented_out_lines
+```
+
+Here we see that the function calls the method called `read_line` possible multiple times,
+each time possibly resulting in a different value.
+
+Let's test that function:
+
+``` python
+from unittest.mock import Mock
+
+from mockitup import allow
+
+mock = Mock()
+allow(mock).read_line().returns(
+    "First line",
+    "# Comment",
+    "Second line",
+    "# Comment",
+    "# Comment",
+    "Last line",
+    None,
+)
+
+assert count_comments_in_line_reader(mock) == 3
+```
+
+Each argument provided to the `returns` directive will be returned in it's turn.
+First will be returned the first argument, and on second invocation will be returned the second argument, and so on.
+
+When all return values are exhausted, the last return value will be repeatedly returned on each future invocation:
+
+``` python
+from unittest.mock import Mock
+
+from mockitup import allow
+
+mock = Mock()
+allow(mock).pop_number().returns(1, 2, 3)
+
+assert mock.pop_number() == 1
+assert mock.pop_number() == 2
+assert mock.pop_number() == 3
+assert mock.pop_number() == 3
+assert mock.pop_number() == 3
+assert mock.pop_number() == 3
+```
+
+</details>
