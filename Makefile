@@ -17,10 +17,10 @@ typecheck-report:
 
 # Ensuring examples validity
 examples:
-	poetry run pytest examples/ -c examples/pytest.ini
+	poetry run python -m pytest examples/ -c examples/pytest.ini
 
 tests:
-	poetry run pytest tests/
+	poetry run python -m pytest tests/
 
 .PHONY: tests examples
 
