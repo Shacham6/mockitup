@@ -36,12 +36,11 @@ assert mock.add_five(3) == 8  # FAILED. WE DIDN'T ALLOW THAT TO HAPPEN.
 ```
 
 To be effective with the library, you'll only need to learn
-the difference between `allowance`, and `expectations`.
-
-- ***allowance*** is giving the mock _permission_ to being invoked in a certain way, but without any requirement of it actually being invoked.
-- ***expectation*** is assuring that the mock is being used in a certain way, in terms of parameters and in order.
+the difference between `allowances`, and `expectations`.
 
 ### Allowances
+
+***Allowance*** is giving the mock _permission_ to being invoked in a certain way, but without any requirement of it actually being invoked.
 
 ``` python
 from unittest.mock import Mock
@@ -66,6 +65,8 @@ But what if we DO want to enforce those calls to be made? Simple,
 we use `expectation_suite`.
 
 ### Expectations
+
+***Expectation*** is assuring that the mock is being used in a certain way, in terms of parameters and in order.
 
 ``` python
 from unittest.mock import Mock
