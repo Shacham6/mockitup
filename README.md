@@ -3,7 +3,7 @@
 `mockitup` is a small package which provides a small DSL for quickly
 configuring mock behaviors.
 
-You read more at our [documentation](https://shacham6.github.io/mockitup/).
+<!-- You read more at our [documentation](https://shacham6.github.io/mockitup/). -->
 
 ## Installation
 
