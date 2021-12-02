@@ -1,24 +1,20 @@
-# Easier `unittest.mock` configuration for the masses
+![Logo](imgs/logo.svg)
 
-`mockitup` is a small package which provides a small DSL for quickly
-configuring mock behaviors.
+`mockitup` is a small package that provides a DSL for quickly configuring mock behaviors.
 
-<!-- You read more at our [documentation](https://shacham6.github.io/mockitup/). -->
+<!-- You can read more in our [documentation](https://shacham6.github.io/mockitup/) website. -->
 
 ## Installation
 
-Simple run the commands:
+Simply run the commands:
 
 ``` shell
 > pip install [--upgrade] mockitup
 ```
 
-Adding the `--upgrade` flag will result in an upgrade of the package,
-if an older version of `mockitup` is already installed in your environment.
-
 ## The `mockitup` library
 
-Using `mockitup` is simple. It offers a small DSL to configure `unittest.mock` objects, which is easy to learn.
+You can easily use the `mockitup` DSL to configure `unittest.mock` objects.
 
 ``` python
 from unittest.mock import Mock
@@ -35,12 +31,11 @@ assert mock.add_five(5) == 10 # SUCCESS
 assert mock.add_five(3) == 8  # FAILED. WE DIDN'T ALLOW THAT TO HAPPEN.
 ```
 
-To be effective with the library, you'll only need to learn
-the difference between `allowances`, and `expectations`.
+The library has two main concepts that it uses to configure the mock objects: `allowances`, and `expectations`. 
 
 ### Allowances
 
-***Allowance*** is giving the mock _permission_ to being invoked in a certain way, but without any requirement of it actually being invoked.
+***Allowances*** let us give the mock _permission_ to be invoked in a certain way, without **requiring** it actually being invoked.
 
 ``` python
 from unittest.mock import Mock
@@ -53,20 +48,17 @@ allow(mock).add_five(1).returns(6)
 
 assert mock.add_five(5) == 10  # That's fine, since we've allowed that to happen.
 
-# ...But calling the mock with an unregistered call will
-# result in an exception called `mockitup.composer.UnregisteredCall`
-# to be raised, since we didn't explicitly allow this call to be made!
-mock.add_five(4)
+mock.add_five(4) # Will raise an `UnregisteredCall` exception!
 ```
 
-You noticed how we didn't call `mock.add_five(1)`? Although we explicitly
-allowed that to happen, we don't enforce them to be made.
-But what if we DO want to enforce those calls to be made? Simple,
-we use `expectation_suite`.
+You'll notice that we didn't call `mock.add_five(1)` and that's fine.
+This is because we used the allow function, which doesn't enforce calls to be made.
+
+If we do want to ensure that certain calls are made we can use the `expection_suite`.
 
 ### Expectations
 
-***Expectation*** is assuring that the mock is being used in a certain way, in terms of parameters and in order.
+***Expectations*** allow us to ensure that a mock is used in a certain way, in terms of both parameters and order.
 
 ``` python
 from unittest.mock import Mock
@@ -79,15 +71,8 @@ with expectation_suite() as es:
     es.expect(mock).add_five(2).returns(7)
 ```
 
-Here we initialized an `expectation_suite`, inside a with caluse.
-Inside the with clause, we defined our expectations:
-
-1. We'll call `mock.add_five(1)` (which will return 6).
-2. We'll call `mock.add_five(2)` (which will return 7).
-
-Not fulfilling those expectations before the end of the `with` clause will result in an
-exception called `ExpectationNotFulfilled` to be raised, which'll contain information
-about the first unmet expectation. In our example:
+In the example shown above we initialized an `expectation_suite` inside a `with` clause.
+Not fulfilling those expectations before the end of the `with` clause will result in the exception `ExpectationNotFulfilled` being raised.
 
 ``` text
 mockitup.composer.ExpectationNotFulfilled: Expected mock `mock.add_five` to be called with (args: '(1,)', kwargs: '{}'), but wasn't
@@ -111,7 +96,7 @@ with expectation_suite() as es:
 
 ```
 
-Here you'll probably notice a quirky detail: Yes, we're not enforcing the order by default.
+Here you'll probably notice that we don't enforce order by default.
 In order to enforce the order, simply pass `ordered=True` to the `expectation_suite`:
 
 ``` python
@@ -161,7 +146,8 @@ Click the following heading for details.
 
 <details>
 <summary>Call raises an exception</summary>
-To make a method call raise an exception, simply use the `.raises` directive:
+
+In order to make a method raise an exception when called with some input, simply use the `.raises` directive:
 
 ``` python
 from unittest.mock import Mock
@@ -178,9 +164,10 @@ mock.divide(0)  # ZeroDivisionError: You done goofed
 
 <details>
 <summary>Call yields from iterable</summary>
-While most of the time you'll return concrete values, sometimes you'll want to make a
-call yield from something.
-For that, you can use the `yields_from` directive:
+
+In most cases you'll want a mock to return a concrete value, but sometimes you'll want to make a call `yield_from` something.
+
+In those cases you can use the `yields_from` directive:
 
 ``` python
 from typing import Iterator
@@ -208,7 +195,7 @@ for actual, expected in zip(result, [1, 2, 3, 4]):
 When testing an impure function or method, sometimes it'll be tough to test using regular
 `unittest.mock` objects.
 
-Here's a function we want to test, for example:
+Say we want to test the following function:
 
 ``` python
 def count_comments_in_line_reader(line_reader):
@@ -243,9 +230,8 @@ allow(mock).read_line().returns(
 assert count_comments_in_line_reader(mock) == 3
 ```
 
-Each argument provided to the `returns` directive will be returned in it's turn.
-First will be returned the first argument, and on second invocation will be returned the second argument, and so on.
-
+Each argument provided to the `returns` directive will be returned in turn.
+On the first invocation of `read_line` the first argument will be returned, then the second, and so on...
 When all return values are exhausted, the last return value will be repeatedly returned on each future invocation:
 
 ``` python
