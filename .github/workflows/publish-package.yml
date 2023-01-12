@@ -17,5 +17,6 @@ jobs:
 
       - name: Build and publish
         env:
+          PDM_PUBLISH_USERNAME: __token__
           PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: pdm publish
