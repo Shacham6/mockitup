@@ -31,4 +31,4 @@ jobs:
 
       - name: Check code quality
         run: |
-          make check
+          pdm run check
