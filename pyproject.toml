@@ -17,6 +17,9 @@ name = "mockitup"
 version = "1.0.0"
 description = "A `unittest.mock` wrapper for easier mocking"
 
+license = { file = "LICENSE" }
+readme = "README.md"
+
 [tool.pdm]
 [tool.pdm.dev-dependencies]
 dev = [
