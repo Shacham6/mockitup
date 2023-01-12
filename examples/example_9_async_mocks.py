@@ -19,4 +19,4 @@ async def works_with_expectations_as_well_example():
         amock = AsyncMock()
         es.expect(amock).do_thing().returns("very fun")
 
-        assert await amock.do_thing()
+        assert await amock.do_thing() == "very fun"
