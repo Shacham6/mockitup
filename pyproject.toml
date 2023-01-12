@@ -28,7 +28,7 @@ dependencies = [
     "typing-extensions>=3.10.0",
 ]
 name = "mockitup"
-version = "0.0.4"
+version = "1.0.0"
 description = "A `unittest.mock` wrapper for easier mocking"
 
 [project.urls]
