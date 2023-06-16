@@ -223,5 +223,14 @@ class MockItUpSideEffect:
 class UnregisteredCall(Exception):
 
     def __init__(self, failed_matches: List[ArgumentsMatchResult]):
-        Exception.__init__(self, "Failed all arguments matching, can't finish call")
+        Exception.__init__(self, _assemble_unregistered_call_message(failed_matches))
         self.failed_matches = failed_matches
+
+
+def _assemble_unregistered_call_message(failed_matches: List[ArgumentsMatchResult]) -> str:
+    lines = [
+        "Failed all arguments matching, can't finish call:",
+    ]
+    for failed_match in failed_matches:
+        lines.append(f" - {failed_match.explanation}")
+    return "\n".join(lines)
