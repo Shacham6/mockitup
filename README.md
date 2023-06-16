@@ -31,7 +31,7 @@ assert mock.add_five(5) == 10 # SUCCESS
 assert mock.add_five(3) == 8  # FAILED. WE DIDN'T ALLOW THAT TO HAPPEN.
 ```
 
-The library has two main concepts that it uses to configure the mock objects: `allowances`, and `expectations`. 
+The library has two main concepts that it uses to configure the mock objects: `allowances`, and `expectations`.
 
 ### Allowances
 
@@ -142,7 +142,7 @@ with expectation_suite(ordered=True) as es:
 `mockitup` contains more features that allow you to test your code more
 efficiently.
 
-Click the following heading for details.
+Click the following headings for details:
 
 <details>
 <summary>Call raises an exception</summary>
@@ -249,5 +249,56 @@ assert mock.pop_number() == 3
 assert mock.pop_number() == 3
 assert mock.pop_number() == 3
 ```
+
+</details>
+
+<details>
+<summary>Wildcard matching</summary>
+
+Up until now, all of the examples presented so far included a strict parametrization of each `expect`ation and `allow`ence.
+But, in some cases, a softer, more dynamic approach is prefered. Luckily, `mockitup` has you covered, in *plenty* of ways:
+
+1. Use `ANY_ARG` when you know that there's an argument, but don't care about it's value:
+    ``` python
+    from unittest.mock import MagicMock
+    from mockitup import ANY_ARG, allow
+
+    mock = MagicMock()
+    allow(mock).call(ANY_ARG, 2).returns(3)
+
+    assert mock.call(1, 2) == 3
+    mock.call(2, 2) == 3
+    ```
+
+2. Use `ANY_ARGS` when you don't care about **any** of the arguments provided to the mock:
+    ``` python
+    from unittest.mock import MagicMock
+    from mockitup import ANY_ARGS, allow
+
+    mock = MagicMock()
+    allow(mock).call(ANY_ARGS).returns(1)
+
+    assert mock.call(1) == 1
+    assert mock.call("lol", 123) == 1
+    assert mock.call([1, 0.1], False, "You get the point") == 1
+
+
+3. Use `PyHamcrest` matchers in order to define expected constraints over the arguments, without defining concrete values:
+
+    ``` python
+    from unittest.mock import Mock
+    from mockitup import allow
+    from hamcrest import any_of
+
+    picky_eater = Mock()
+
+    allow(picky_eater).eat(any_of("pizza", "hamburger")).returns("yum")
+    allow(picky_eater).eat(ANY_ARGS).raises(ValueError())
+
+    assert picky_eater.eat("pizza") == "yum"
+    assert picky_eater.eat("hamburger") == "yum"
+
+    picky_eater.eat("vegetables")  # Will raise a value error.
+    ```
 
 </details>
