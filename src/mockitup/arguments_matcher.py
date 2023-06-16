@@ -20,11 +20,12 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
         if registered_len == provided_len == 0:
             return True, "Arguments matched"
 
-        if registered_len != provided_len:
-            return False, "Length of provided positional arguments isn't the same as the registered"
-
+        # Lengths don't have to match in case of `ANY_ARGS` wildcard.
         if self.args[0] is ANY_ARGS:
             return True, "Matched wildcard `ANY_ARGS`"
+
+        if registered_len != provided_len:
+            return False, "Length of provided positional arguments isn't the same as the registered"
 
         for index, (registered, provided) in enumerate(zip(self.args, args)):
             matched = self.__match_values(registered, provided)

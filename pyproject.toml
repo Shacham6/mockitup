@@ -14,7 +14,7 @@ dependencies = [
     "typing-extensions>=3.10.0",
 ]
 name = "mockitup"
-version = "1.0.1"
+version = "1.0.2"
 description = "A `unittest.mock` wrapper for easier mocking"
 
 license = { file = "LICENSE" }
