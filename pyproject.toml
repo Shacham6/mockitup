@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 authors = [
     {name = "Shacham Ginat", email = "shacham6@gmail.com"},
 ]
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.8.1,<4.0"
 dependencies = [
     "PyHamcrest>=2.0.2",
     "typing-extensions>=3.10.0",
@@ -14,7 +14,7 @@ dependencies = [
     "typing-extensions>=3.10.0",
 ]
 name = "mockitup"
-version = "1.0.2"
+version = "1.1.0"
 description = "A `unittest.mock` wrapper for easier mocking"
 
 license = { file = "LICENSE" }
