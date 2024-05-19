@@ -9,8 +9,9 @@ ANY_ARGS = object()
 
 
 class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
-
-    def matches(self, args: Tuple[Any], kwargs: Mapping[str, Any]) -> "ArgumentsMatchResult":
+    def matches(
+        self, args: Tuple[Any], kwargs: Mapping[str, Any]
+    ) -> "ArgumentsMatchResult":
         matched, explanation = self._matches(args, kwargs)
         return ArgumentsMatchResult(matched, explanation)
 
@@ -25,24 +26,34 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
             return True, "Matched wildcard 'ANY_ARGS'"
 
         if registered_len != provided_len:
-            return False, "Length of provided positional arguments isn't the same as the registered"
+            return (
+                False,
+                "Length of provided positional arguments isn't the same as the registered",
+            )
 
         for index, (registered, provided) in enumerate(zip(self.args, args)):
             matched = self.__match_values(registered, provided)
             if not matched:
-                return False, (f"Positional arguments at index {index} didn't match "
-                               f"(registered: '{registered}', provided: '{provided}')")
+                return False, (
+                    f"Positional arguments at index {index} didn't match "
+                    f"(registered: '{registered}', provided: '{provided}')"
+                )
 
         # Should have same keys
         if set(self.kwargs) != set(kwargs):
-            return False, "Length of provided named arguments isn't the same as the registered"
+            return (
+                False,
+                "Length of provided named arguments isn't the same as the registered",
+            )
 
         for key in self.kwargs:
             registered = self.kwargs[key]
             provided = kwargs[key]
             if not self.__match_values(registered, provided):
-                return False, (f"Named arguments at key '{key}' didn't match "
-                               f"(registered: '{registered}', provided: '{provided}')")
+                return False, (
+                    f"Named arguments at key '{key}' didn't match "
+                    f"(registered: '{registered}', provided: '{provided}')"
+                )
         return True, "Arguments matched"
 
     @staticmethod
@@ -57,7 +68,6 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
 
 
 class ArgumentsMatchResult:
-
     def __init__(self, succeeded: bool, explanation: str):
         self.__succeeded = succeeded
         self.__explanation = explanation

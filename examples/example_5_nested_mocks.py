@@ -5,15 +5,11 @@ from typing_extensions import Protocol
 
 
 class NumberGetter(Protocol):
-
-    def get_number(self) -> int:
-        ...
+    def get_number(self) -> int: ...
 
 
 class Printer(Protocol):
-
-    def print_number(self, number: int) -> None:
-        ...
+    def print_number(self, number: int) -> None: ...
 
 
 def print_if_number_is_odd(number_getter: NumberGetter, printer: Printer):

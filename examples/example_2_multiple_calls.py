@@ -5,9 +5,7 @@ from typing_extensions import Protocol
 
 
 class NumberGetter(Protocol):
-
-    def get(self, number_name: str) -> int:
-        ...
+    def get(self, number_name: str) -> int: ...
 
 
 def weird_get_five(number_getter: NumberGetter) -> int:
@@ -29,7 +27,6 @@ def vanilla_verbose_mocking_example():
 
 
 def vanilla_shorter_mocking_example():
-
     def get_mock(number_name: str) -> int:
         return {"two": 2, "three": 3}[number_name]
 

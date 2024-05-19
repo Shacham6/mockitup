@@ -12,7 +12,6 @@ _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
 class _MockComposerMembers:
-
     def __init__(self, mock: _MockType, proxy_cb: ProxyCallback) -> None:
         self.mock = mock
         self.proxy_cb: ProxyCallback = proxy_cb
@@ -23,7 +22,6 @@ def _composer_members(composer: "MockComposer") -> _MockComposerMembers:
 
 
 class MockComposer:
-
     def __init__(self, mock: _MockType, proxy_cb: ProxyCallback):
         super().__setattr__("_members", _MockComposerMembers(mock, proxy_cb))
 
@@ -43,7 +41,12 @@ class MockComposer:
         """
         return self
 
-    def __exit__(self, exception_type: Type[BaseException], exception_value: BaseException, traceback: Trace) -> None:
+    def __exit__(
+        self,
+        exception_type: Type[BaseException],
+        exception_value: BaseException,
+        traceback: Trace,
+    ) -> None:
         pass
 
     def __call__(self, *args: Any, **kwargs: Any) -> MockResponseProxy:
@@ -56,7 +59,6 @@ class MockComposer:
 
 
 class ExpectationFulfillmentCursor:
-
     def __init__(self) -> None:
         self.__cursor = 0
 
@@ -96,7 +98,9 @@ class ExpectationSuite:
         arguments: ArgumentsMatcher,
         action: BaseActionResult,
     ) -> None:
-        expectation = self.__Expectation(mock, arguments, self.__expectation_fulfillment_cursor)
+        expectation = self.__Expectation(
+            mock, arguments, self.__expectation_fulfillment_cursor
+        )
         register_call_side_effect(mock, arguments, action, report=expectation.finish)
         self.__expectations.append(expectation)
 
@@ -104,8 +108,12 @@ class ExpectationSuite:
         __match_results: Optional[ArgumentsMatchResult]
         __fulfilled_at_step: Optional[int]
 
-        def __init__(self, mock: _MockType, args: ArgumentsMatcher,
-                     fulfillment_cursor: ExpectationFulfillmentCursor) -> None:
+        def __init__(
+            self,
+            mock: _MockType,
+            args: ArgumentsMatcher,
+            fulfillment_cursor: ExpectationFulfillmentCursor,
+        ) -> None:
             self.__mock = mock
             self.__args = args
             self.__match_results = None
@@ -119,8 +127,10 @@ class ExpectationSuite:
             if not self.__match_results:
                 mock_name = self.__mock._extract_mock_name()
                 args, kwargs = self.__args
-                message = (f"Expected mock '{mock_name}' to be called with "
-                           f"(args: '{args}', kwargs: '{kwargs}'), but wasn't")
+                message = (
+                    f"Expected mock '{mock_name}' to be called with "
+                    f"(args: '{args}', kwargs: '{kwargs}'), but wasn't"
+                )
                 raise ExpectationNotFulfilled(
                     message,
                     mock=self.__mock,
@@ -162,9 +172,7 @@ def register_call_side_effect(
 
 
 class _ReportMatchResults(Protocol):
-
-    def __call__(self, match_results: ArgumentsMatchResult) -> None:
-        ...
+    def __call__(self, match_results: ArgumentsMatchResult) -> None: ...
 
 
 class _ExpectationResult:
@@ -180,7 +188,6 @@ class ExpectationNotMet(Exception):
 
 
 class ExpectationNotFulfilled(ExpectationNotMet):
-
     def __init__(
         self,
         *args: object,
@@ -202,8 +209,12 @@ class MockItUpSideEffect:
     def __init__(self) -> None:
         self.__registered = []
 
-    def register(self, arguments: ArgumentsMatcher, action_result: BaseActionResult,
-                 report: _ReportMatchResults) -> None:
+    def register(
+        self,
+        arguments: ArgumentsMatcher,
+        action_result: BaseActionResult,
+        report: _ReportMatchResults,
+    ) -> None:
         self.__registered.append((arguments, action_result, report))
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -221,13 +232,14 @@ class MockItUpSideEffect:
 
 
 class UnregisteredCall(Exception):
-
     def __init__(self, failed_matches: List[ArgumentsMatchResult]):
         Exception.__init__(self, _assemble_unregistered_call_message(failed_matches))
         self.failed_matches = failed_matches
 
 
-def _assemble_unregistered_call_message(failed_matches: List[ArgumentsMatchResult]) -> str:
+def _assemble_unregistered_call_message(
+    failed_matches: List[ArgumentsMatchResult],
+) -> str:
     lines = [
         "Failed all arguments matching, can't finish call:",
     ]

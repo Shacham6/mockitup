@@ -3,7 +3,12 @@ from unittest.mock import MagicMock, Mock
 import pytest
 from hamcrest import equal_to, greater_than
 from mockitup import ANY_ARG, allow
-from mockitup.composer import ExpectationNotMet, MockComposer, MockResponseProxy, expectation_suite
+from mockitup.composer import (
+    ExpectationNotMet,
+    MockComposer,
+    MockResponseProxy,
+    expectation_suite,
+)
 
 
 def test_compose_allows_nesting():
