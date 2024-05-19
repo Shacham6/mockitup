@@ -119,7 +119,7 @@ class ExpectationSuite:
             if not self.__match_results:
                 mock_name = self.__mock._extract_mock_name()
                 args, kwargs = self.__args
-                message = (f"Expected mock `{mock_name}` to be called with "
+                message = (f"Expected mock '{mock_name}' to be called with "
                            f"(args: '{args}', kwargs: '{kwargs}'), but wasn't")
                 raise ExpectationNotFulfilled(
                     message,
