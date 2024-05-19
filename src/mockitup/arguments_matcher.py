@@ -22,7 +22,7 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
 
         # Lengths don't have to match in case of `ANY_ARGS` wildcard.
         if self.args[0] is ANY_ARGS:
-            return True, "Matched wildcard `ANY_ARGS`"
+            return True, "Matched wildcard 'ANY_ARGS'"
 
         if registered_len != provided_len:
             return False, "Length of provided positional arguments isn't the same as the registered"
@@ -31,7 +31,7 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
             matched = self.__match_values(registered, provided)
             if not matched:
                 return False, (f"Positional arguments at index {index} didn't match "
-                               f"(registered: `{registered}`, provided: `{provided}`)")
+                               f"(registered: '{registered}', provided: '{provided}')")
 
         # Should have same keys
         if set(self.kwargs) != set(kwargs):
@@ -41,8 +41,8 @@ class ArgumentsMatcher(namedtuple("StrictArgs", ["args", "kwargs"])):
             registered = self.kwargs[key]
             provided = kwargs[key]
             if not self.__match_values(registered, provided):
-                return False, (f"Named arguments at key `{key}` didn't match "
-                               f"(registered: `{registered}`, provided: `{provided}`)")
+                return False, (f"Named arguments at key '{key}' didn't match "
+                               f"(registered: '{registered}', provided: '{provided}')")
         return True, "Arguments matched"
 
     @staticmethod
