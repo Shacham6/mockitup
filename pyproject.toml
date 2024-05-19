@@ -10,8 +10,6 @@ requires-python = ">=3.8.1,<4.0"
 dependencies = [
     "PyHamcrest>=2.0.2",
     "typing-extensions>=3.10.0",
-    "PyHamcrest>=2.0.2",
-    "typing-extensions>=3.10.0",
 ]
 name = "mockitup"
 version = "1.1.0"
@@ -24,23 +22,31 @@ readme = "README.md"
 [tool.pdm.dev-dependencies]
 dev = [
     "mypy>=0.910",
-    "flake8>=3.9.2",
     "isort>=5.9.3",
     "pytest>=6.2.5",
-    "yapf>=0.31.0",
     "anyio>=3.3.1",
     "trio>=0.19.0",
     "asyncmock>=0.4.2",
     "mkdocs>=1.2.3",
+    "ruff>=0.4.4",
 ]
-
 
 [tool.pdm.scripts]
 clean = "rm -rf **/__pycache__ **/.pytest_cache/"
-fix-format = "yapf --recursive --in-place --parallel src/mockitup/ tests/ examples/"
-check-format = "flake8 src/mockitup/ tests/ examples/"
+
+check-format = "ruff check src/ tests/ examples/"
+
+ruff-format = "ruff format src/ tests/ examples/"
+ruff-fix-checks = "ruff check --fix --exit-zero src/ tests/ examples/"
+
+fix-format = {composite=[
+    "ruff-format",
+    "ruff-fix-checks",
+]}
+
 typecheck = "mypy src/ --strict"
 typecheck-report = "mypy -p src/mockitup --strict --html-report mypy_report"
 examples = "python -m pytest examples/ -c examples/pytest.ini"
 tests = "pytest tests/"
 check = {composite = ["check-format", "typecheck", "tests", "examples"]}
+

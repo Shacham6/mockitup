@@ -7,13 +7,10 @@ _MockType = TypeVar("_MockType", bound=unittest.mock.Mock)
 
 
 class BaseActionResult(Protocol):
-
-    def provide_result(self) -> Any:
-        ...
+    def provide_result(self) -> Any: ...
 
 
 class ActionReturnsMultipleValues:
-
     def __init__(self, *values: Any):
         self.__return_none = len(values) == 0
         self.__values = iter(values)
@@ -30,7 +27,6 @@ class ActionReturnsMultipleValues:
 
 
 class ActionReturnsSingleValue:
-
     def __init__(self, value: Any):
         self.__value = value
 
@@ -42,7 +38,6 @@ class ActionReturnsSingleValue:
 
 
 class ActionRaises:
-
     def __init__(self, value: Any):
         self.__value = value
 
@@ -51,7 +46,6 @@ class ActionRaises:
 
 
 class ActionYieldsFrom:
-
     def __init__(self, value: Iterable[Any]):
         self.__value = value
 

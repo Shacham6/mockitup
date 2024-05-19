@@ -3,27 +3,29 @@ from unittest.mock import Mock
 
 from typing_extensions import Protocol
 
-from .actions import ActionRaises, ActionReturnsMultipleValues, ActionReturnsSingleValue, ActionYieldsFrom, \
-    BaseActionResult
+from .actions import (
+    ActionRaises,
+    ActionReturnsMultipleValues,
+    ActionReturnsSingleValue,
+    ActionYieldsFrom,
+    BaseActionResult,
+)
 from .arguments_matcher import ArgumentsMatcher
 
 _MockType = TypeVar("_MockType", bound=Mock)
 
 
 class ProxyCallback(Protocol):
-
-    def __call__(self, mock: _MockType, arguments: ArgumentsMatcher, action: BaseActionResult) -> None:
-        ...
+    def __call__(
+        self, mock: _MockType, arguments: ArgumentsMatcher, action: BaseActionResult
+    ) -> None: ...
 
 
 class _ActionResultBaseFactory(Protocol):
-
-    def __call__(self, value: Any) -> BaseActionResult:
-        ...
+    def __call__(self, value: Any) -> BaseActionResult: ...
 
 
 class _ValueProvidingDescriptor:
-
     def __init__(self, build_action_result: _ActionResultBaseFactory) -> None:
         self.__build_action_result = build_action_result
 
@@ -32,7 +34,6 @@ class _ValueProvidingDescriptor:
         obj: "MockResponseProxy",
         objtype: Optional[Type["MockResponseProxy"]] = None,
     ) -> Callable[[Any], None]:
-
         def __tmp(value: Any) -> None:
             return obj._cb(
                 obj._mock,
@@ -47,8 +48,9 @@ ActionReturns = Union[ActionReturnsMultipleValues, ActionReturnsSingleValue]
 
 
 class MockResponseProxy:
-
-    def __init__(self, mock: _MockType, arguments: "ArgumentsMatcher", cb: ProxyCallback):
+    def __init__(
+        self, mock: _MockType, arguments: "ArgumentsMatcher", cb: ProxyCallback
+    ):
         self._mock = mock
         self._arguments = arguments
         self._cb = cb
